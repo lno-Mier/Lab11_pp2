@@ -1,0 +1,40 @@
+CREATE OR REPLACE FUNCTION get_records_by_pattern(pattern TEXT)
+RETURNS TABLE(id INT, user_name TEXT, phone TEXT) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT id, user_name, phone
+    FROM phone_book
+    WHERE user_name ILIKE '%' || pattern || '%'
+       OR phone ILIKE '%' || pattern || '%';
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+CREATE OR REPLACE PROCEDURE upsert_user(new_user_name TEXT, new_phone TEXT)
+LANGUAGE plpgsql AS $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM phone_book WHERE user_name = new_user_name) THEN
+        UPDATE phone_book
+        SET phone = new_phone
+        WHERE user_name = new_user_name;
+    ELSE
+        INSERT INTO phone_book (user_name, phone)
+        VALUES (new_user_name, new_phone);
+    END IF;
+END;
+$$;
+
+
+
+CREATE OR REPLACE PROCEDURE delete_user(name_del TEXT, phone_del TEXT)
+LANGUAGE plpgsql AS $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM phone_book WHERE user_name = name_del AND phone = phone_del) THEN
+        DELETE FROM phone_book 
+        WHERE user_name = name_del AND phone = phone_del;
+    ELSE
+        RAISE NOTICE 'Запись с такими данными не найдена.';
+    END IF;
+END;
+$$;
