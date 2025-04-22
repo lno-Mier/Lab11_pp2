@@ -27,14 +27,34 @@ $$;
 
 
 
-CREATE OR REPLACE PROCEDURE delete_user(name_del TEXT, phone_del TEXT)
-LANGUAGE plpgsql AS $$
+CREATE OR REPLACE PROCEDURE delete_by_name(IN f_name TEXT, IN l_name TEXT)
+LANGUAGE plpgsql
+AS $$
 BEGIN
-    IF EXISTS (SELECT 1 FROM phone_book WHERE user_name = name_del AND phone = phone_del) THEN
-        DELETE FROM phone_book 
-        WHERE user_name = name_del AND phone = phone_del;
+    IF EXISTS (
+        SELECT 1 FROM phonebook WHERE first_name = f_name AND last_name = l_name
+    ) THEN
+        DELETE FROM phonebook WHERE first_name = f_name AND last_name = l_name;
+        RAISE NOTICE 'Запись с именем % и фамилией % успешно удалена.', f_name, l_name;
     ELSE
-        RAISE NOTICE 'Запись с такими данными не найдена.';
+        RAISE NOTICE 'Запись с указанным именем и фамилией не найдена.';
+    END IF;
+END;
+$$;
+
+
+
+CREATE OR REPLACE PROCEDURE delete_by_phone(IN phone_num TEXT)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM phonebook WHERE phonebook.phone_number = phone_num
+    ) THEN
+        DELETE FROM phonebook WHERE phonebook.phone_number = phone_num;
+        RAISE NOTICE 'Запись с номером телефона % успешно удалена.', phone_num;
+    ELSE
+        RAISE NOTICE 'Запись с указанным номером телефона не найдена.';
     END IF;
 END;
 $$;
